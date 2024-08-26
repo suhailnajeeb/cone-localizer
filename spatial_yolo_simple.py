@@ -15,6 +15,8 @@ class SpatialConeDetector:
         self.pipeline = self.setup_spatial_detection_pipeline(configs)
         self.cam2world = CameraToWorld(configs.camera_height, configs.camera_alpha)
         self.labelMap = configs.labelMap
+        self.x_threshold = configs.x_threshold
+        self.z_threshold = configs.z_threshold
     
     @staticmethod
     def setup_camrgb(camRgb):
@@ -105,8 +107,11 @@ class SpatialConeDetector:
                 inDet = detectionNNQueue.get()
                 detections = inDet.detections
 
+                detection_coordinates = []
+                detection_colors = []
+
                 for detection in detections:
-                    label = self.labelMap[detection.label]
+                    label = detection.label
 
                     # Process Spatial Co-ordinates
                     x_c = detection.spatialCoordinates.x
@@ -116,13 +121,25 @@ class SpatialConeDetector:
                     # Transform coordinates to body frame
                     x_w, y_w, z_w = self.cam2world.transform_to_body_frame(x_c, y_c, z_c)
 
-                    print(f"Cone Detected at: {x_w/10:.2f}, {y_w/10:.2f}, {z_w/10:.2f}; Cone Color: {label}, Confidence: {detection.confidence*100:.2f}%")                
+                    if x_w < self.x_threshold and z_w < self.z_threshold:
+                        detection_coordinates.append((int(x_w), int(y_w)))    # Converted to integers to reduce data; units: mm
+                        detection_colors.append(label)                        # Label 0: yellow 1: blue
+                        #print(f"Cone Detected at: {x_w/10:.2f}, {y_w/10:.2f}, {z_w/10:.2f}; Cone Color: {self.labelMap(label)}, Confidence: {detection.confidence*100:.2f}%")
+
+                print("Detection Coordinates List: ", detection_coordinates)
+                print("Detection Colors List: ", detection_colors)
+
+                # These two lists `detection_coordinates` and `detection_colors` are meant to be published to ROS
+
+
 
 detector_configs = SimpleNamespace(
     nn_blob_path = 'models/yolov8n_det_3510_yb_6shave.blob',
     camera_height = 290,    # mm
     camera_alpha = 20,      # degrees
     labelMap = ["Yellow", "Blue"],   # label map for detected objects
+    x_threshold = 3000,     # mm ; only consider cones within 3m distance of the car
+    z_threshold = 100,       # mm ; ignore detections with height > 10 cm ; likely misdetections/noise
 )
 
 cone_detector = SpatialConeDetector(detector_configs)
