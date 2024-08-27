@@ -46,12 +46,12 @@ Manually filter the images that might contain poor/unwanted samples. Create a ne
 
 This script annotates image datasets using the GroundedSAM model.
 
-## Requirements
+### Requirements
 - Python 3.x
 - GPU and substantial memory for large datasets
 - Libraries: `autodistill`
 
-## Setup
+### Setup
 1. Update paths in the script:
    - `DATASET_DIR_PATH`: path to save annotated dataset
    - `IMAGE_DIR_PATH`: path to images
@@ -61,12 +61,40 @@ This script annotates image datasets using the GroundedSAM model.
    pip install autodistill
    ```
 
-## Running the Script
+### Running the Script
 Navigate to the script's directory and execute:
 ```bash
 python label.py
 ```
 Output is saved to the directory specified in `DATASET_DIR_PATH`.
 
-## Note
-Ensure the provided paths are correct and the system has adequate resources.
+> **Ensure the provided paths are correct and the system has adequate resources.**
+
+## Step 4: Update the Dataset using `update_dataset.py`
+
+### Purpose
+
+The `update_dataset.py` script processes an image dataset by:
+
+1. **Resizing Images:** Standardizes images to 640x640 pixels.
+2. **Color Classification:** Classifies cones based on their color (yellow or blue) using hue analysis.
+3. **Dataset Structuring:** Organizes processed images and labels in a format compatible with machine learning frameworks.
+4. **Metadata Update:** Generates a `data.yaml` file with class information and paths for seamless integration.
+
+### Usage
+
+Update the `source_dir` and `target_dir` paths as needed, then run:
+
+```bash
+python update_dataset.py
+```
+
+### Requirements
+
+Install the necessary packages:
+
+```bash
+pip install numpy pillow tqdm matplotlib
+```
+
+These cover both the script and `cone_utils.py` dependencies.
