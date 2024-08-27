@@ -27,7 +27,8 @@ class SpatialConeDetector:
         camRgb.setImageOrientation(dai.CameraImageOrientation.VERTICAL_FLIP)    # Flip the image vertically due to reverse camera mount
         camRgb.setInterleaved(False)
         camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
-        #camRgb.setFps(40)  # Set Camera FPS
+        camRgb.setPreviewKeepAspectRatio(False)
+        camRgb.setFps(10)  # Set Camera FPS
     
     @staticmethod
     def setup_stereo(monoLeft, monoRight, stereo):
@@ -62,8 +63,9 @@ class SpatialConeDetector:
         spatialDetectionNetwork.setIouThreshold(0.5)
 
         # Additional Settings
-        #spatialDetectionNetwork.setNumInferenceThreads(2)
-        #spatialDetectionNetwork.input.setBlocking(False)
+        spatialDetectionNetwork.setNumInferenceThreads(2)
+        spatialDetectionNetwork.input.setBlocking(False)
+        spatialDetectionNetwork.input.setQueueSize(1)       # Make sure frames are real-time
 
     def setup_spatial_detection_pipeline(self, configs):
         pipeline = dai.Pipeline()
@@ -139,7 +141,7 @@ class SpatialConeDetector:
 
 
 detector_configs = SimpleNamespace(
-    nn_blob_path = 'models/yolov8n_det_3510_yb_6shave.blob',
+    nn_blob_path = '/home/ai4r/models/blobs/yolov8n_cones_3510_yb_st_100_5s.blob',
     camera_height = 290,    # mm
     camera_alpha = 20,      # degrees
     labelMap = ["Yellow", "Blue"],   # label map for detected objects
