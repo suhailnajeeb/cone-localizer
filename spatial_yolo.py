@@ -15,6 +15,8 @@ class SpatialConeDetector:
         self.pipeline = self.setup_spatial_detection_pipeline(configs)
         self.cam2world = CameraToWorld(configs.camera_height, configs.camera_alpha)
         self.labelMap = configs.labelMap
+        self.show_depth = configs.show_depth
+        self.dot_projector = configs.dot_projector
     
     @staticmethod
     def setup_camrgb(camRgb):
@@ -24,13 +26,12 @@ class SpatialConeDetector:
         camRgb.setImageOrientation(dai.CameraImageOrientation.VERTICAL_FLIP)    # Flip the image vertically due to reverse camera mount
         camRgb.setInterleaved(False)
         camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
-        #camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.RGB)
         camRgb.setPreviewKeepAspectRatio(False)
         camRgb.setFps(10)  # Set Camera FPS
     
     @staticmethod
     def setup_stereo(monoLeft, monoRight, stereo):
-        # Stereo Camra properties
+        # Stereo Camera properties
         monoLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_400_P)
         monoLeft.setCamera("left")
         monoLeft.setImageOrientation(dai.CameraImageOrientation.VERTICAL_FLIP)  # Flip the image vertically
@@ -58,8 +59,8 @@ class SpatialConeDetector:
         # Yolo specific parameters
         spatialDetectionNetwork.setNumClasses(2)
         spatialDetectionNetwork.setCoordinateSize(4)
-        #spatialDetectionNetwork.setAnchors([10,14, 23,27, 37,58, 81,82, 135,169, 344,319])
-        #spatialDetectionNetwork.setAnchorMasks({ "side26": [1,2,3], "side13": [3,4,5] })
+        #spatialDetectionNetwork.setAnchors([10,14, 23,27, 37,58, 81,82, 135,169, 344,319])     # Not needed for YOLOv8
+        #spatialDetectionNetwork.setAnchorMasks({ "side26": [1,2,3], "side13": [3,4,5] })       # Not needed for YOLOv8
         spatialDetectionNetwork.setIouThreshold(0.5)
 
         # Additional Settings
@@ -81,12 +82,10 @@ class SpatialConeDetector:
         nnNetworkOut = pipeline.create(dai.node.XLinkOut)
         xoutRgb = pipeline.create(dai.node.XLinkOut)
         xoutNN = pipeline.create(dai.node.XLinkOut)
-        # xoutDepth = pipeline.create(dai.node.XLinkOut)
 
         # Set output streams
         xoutRgb.setStreamName("rgb")
-        xoutNN.setStreamName("detections")
-        # xoutDepth.setStreamName("depth")
+        xoutNN.setStreamName("detections")        
         nnNetworkOut.setStreamName("nnNetwork")
 
         # Setup Nodes
@@ -107,21 +106,26 @@ class SpatialConeDetector:
         spatialDetectionNetwork.out.link(xoutNN.input)
 
         stereo.depth.link(spatialDetectionNetwork.inputDepth)
-        # spatialDetectionNetwork.passthroughDepth.link(xoutDepth.input)
         spatialDetectionNetwork.outNetwork.link(nnNetworkOut.input)
+
+        # Additional nodes for depth visualization
+        if self.show_depth:
+            xoutDepth = pipeline.create(dai.node.XLinkOut)
+            xoutDepth.setStreamName("depth")
+            spatialDetectionNetwork.passthroughDepth.link(xoutDepth.input)
 
         return pipeline
     
     def start_pipeline(self):
         # Connect to OAKD device and start pipeline
         with dai.Device(self.pipeline) as device:
-            # Set IR Dot Projector = True
-            # device.setIrLaserDotProjectorIntensity(0)     # Set IR Laser Dot Projector Intensity
+            # Set IR Laser Dot Projector
+            if self.dot_projector: device.setIrLaserDotProjectorIntensity(1.0)    # Intensity can be between 0 ~ 1
 
             # Output queues will be used to get the rgb frames and nn data from the outputs defined above
             previewQueue = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
             detectionNNQueue = device.getOutputQueue(name="detections", maxSize=4, blocking=False)
-            # depthQueue = device.getOutputQueue(name="depth", maxSize=4, blocking=False)
+            if self.show_depth: depthQueue = device.getOutputQueue(name="depth", maxSize=4, blocking=False)
             networkQueue = device.getOutputQueue(name="nnNetwork", maxSize=4, blocking=False)
 
             startTime = time.monotonic()
@@ -134,7 +138,6 @@ class SpatialConeDetector:
                 frameStart = time.time()
                 inPreview = previewQueue.get()
                 inDet = detectionNNQueue.get()
-                # depth = depthQueue.get()
                 inNN = networkQueue.get()
 
                 # TODO: Get rid of this print statement
@@ -146,16 +149,20 @@ class SpatialConeDetector:
                     printOutputLayersOnce = False
                 
                 frame = inPreview.getCvFrame()
-                # depthFrame = depth.getFrame() # depthFrame values are in millimeters
+                
+                # Code for showing the depth frame
+                if self.show_depth: 
+                    depth = depthQueue.get()
+                    depthFrame = depth.getFrame() # depthFrame values are in millimeters
 
-                # depth_downscaled = depthFrame[::4]
-                # if np.all(depth_downscaled == 0):
-                #     min_depth = 0  # Set a default minimum depth value when all elements are zero
-                # else:
-                #     min_depth = np.percentile(depth_downscaled[depth_downscaled != 0], 1)
-                # max_depth = np.percentile(depth_downscaled, 99)
-                # depthFrameColor = np.interp(depthFrame, (min_depth, max_depth), (0, 255)).astype(np.uint8)
-                # depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_HOT)
+                    depth_downscaled = depthFrame[::4]
+                    if np.all(depth_downscaled == 0):
+                        min_depth = 0  # Set a default minimum depth value when all elements are zero
+                    else:
+                        min_depth = np.percentile(depth_downscaled[depth_downscaled != 0], 1)
+                    max_depth = np.percentile(depth_downscaled, 99)
+                    depthFrameColor = np.interp(depthFrame, (min_depth, max_depth), (0, 255)).astype(np.uint8)
+                    depthFrameColor = cv2.applyColorMap(depthFrameColor, cv2.COLORMAP_HOT)
 
                 counter+=1
                 current_time = time.monotonic()
@@ -171,16 +178,17 @@ class SpatialConeDetector:
                 width  = frame.shape[1]
 
                 for detection in detections:
-                    # roiData = detection.boundingBoxMapping
-                    # roi = roiData.roi
-                    # roi = roi.denormalize(depthFrameColor.shape[1], depthFrameColor.shape[0])
-                    # topLeft = roi.topLeft()
-                    # bottomRight = roi.bottomRight()
-                    # xmin = int(topLeft.x)
-                    # ymin = int(topLeft.y)
-                    # xmax = int(bottomRight.x)
-                    # ymax = int(bottomRight.y)
-                    # cv2.rectangle(depthFrameColor, (xmin, ymin), (xmax, ymax), color, 1)
+                    if self.show_depth:
+                        roiData = detection.boundingBoxMapping
+                        roi = roiData.roi
+                        roi = roi.denormalize(depthFrameColor.shape[1], depthFrameColor.shape[0])
+                        topLeft = roi.topLeft()
+                        bottomRight = roi.bottomRight()
+                        xmin = int(topLeft.x)
+                        ymin = int(topLeft.y)
+                        xmax = int(bottomRight.x)
+                        ymax = int(bottomRight.y)
+                        cv2.rectangle(depthFrameColor, (xmin, ymin), (xmax, ymax), color, 1)
 
                     # Denormalize bounding box
                     x1 = int(detection.xmin * width)
@@ -213,18 +221,20 @@ class SpatialConeDetector:
 
                 cv2.putText(frame, "NN fps: {:.2f}".format(fps), (2, frame.shape[0] - 4), cv2.FONT_HERSHEY_TRIPLEX, 0.4, color)
                 cv2.putText(frame, f"Latency: {latency:.2f} ms", (2, 20), cv2.FONT_HERSHEY_TRIPLEX, 0.5, color)
-                # cv2.imshow("depth", depthFrameColor)
+                if self.show_depth: cv2.imshow("depth", depthFrameColor)
                 cv2.imshow("rgb", frame)
 
                 if cv2.waitKey(1) == ord('q'):
-                    breakq
+                    break
 
 detector_configs = SimpleNamespace(
-    nn_blob_path = '/home/ai4r/models/blobs/yolov8n_cones_3510_yb_st_100_5s.blob',
+    nn_blob_path = 'models/yolov8n_cones_3510_yb_st_100_5s.blob',
     camera_height = 290,    # mm
     camera_alpha = 20,      # degrees
     labelMap = ["Yellow", "Blue"],   # label map for detected objects
     syncNN = True,
+    dot_projector = True,
+    show_depth = False,
 )
 
 cone_detector = SpatialConeDetector(detector_configs)

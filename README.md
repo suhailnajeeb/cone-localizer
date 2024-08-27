@@ -126,6 +126,40 @@ The script will train the model for 100 epochs with an image size of 640 and a b
 #### Note
 > For faster training, it is highly recommended to use a GPU. Training on a CPU can be significantly slower, especially with larger datasets and higher epoch counts.
 
----
+After running the training script, the model file should be available inside `runs>detect>MODEL_NAME>weights>best.pt`
+Obtain the `best.pt` weights file for the next step.
 
-This section should provide a concise explanation of the script's purpose and usage within the larger project.
+## Step 6: Converting Blob
+
+Take the weight file and upload it to this [blob conversion tool](https://tools.luxonis.com/)
+Select the following settings: 
+
+- YOLO Version: 8 (Detection)
+- RVC2
+- Input Image shape: '640 640'
+- Shaves: 5
+- Use OpenVINO 2021.4 ✅
+
+Download the `results.zip` file and unpack it. The directory unzipped contents should contain a `blob` file which we can use to deploy the model to the OAKD Pro.
+
+## Step 7: `spatial_yolo.py`: Spatial Cone Detection Pipeline
+
+This script detects and localizes cones (e.g., traffic cones) in 3D space using an OAK-D device and a YOLO-based neural network.
+
+### Configuration Options
+
+- **`nn_blob_path`:** Path to the neural network blob file (e.g., `models/yolov8n_cones_3510_yb_st_100_5s.blob`).
+- **`camera_height`:** Height of the camera from the ground in millimeters (e.g., `290 mm`).
+- **`camera_alpha`:** Angle of the camera's tilt relative to the ground in degrees (e.g., `20°`).
+- **`labelMap`:** Label map for detected objects (e.g., `["Yellow", "Blue"]`).
+- **`syncNN`:** Synchronize the neural network processing with the camera feed (e.g., `True`).
+- **`show_depth:`** Visualize depth
+- **`dot_projector:`** Use IR Laser Dot Projections for Active Stereo Depth Estimation
+
+### Usage
+
+1. Ensure your OAK-D device is connected and configured.
+2. Update the `detector_configs` with your settings.
+3. Run the script to start real-time cone detection.
+
+A minimal version of thie script can be found here: `spatial_yolo_simple.py` which is later converted into a ROS node for integration within the pipeline

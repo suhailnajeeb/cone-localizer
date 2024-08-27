@@ -141,7 +141,7 @@ class SpatialConeDetector:
 
 
 detector_configs = SimpleNamespace(
-    nn_blob_path = '/home/ai4r/models/blobs/yolov8n_cones_3510_yb_st_100_5s.blob',
+    nn_blob_path = 'models/yolov8n_cones_3510_yb_st_100_5s.blob',
     camera_height = 290,    # mm
     camera_alpha = 20,      # degrees
     labelMap = ["Yellow", "Blue"],   # label map for detected objects
