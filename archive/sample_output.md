@@ -1,0 +1,32 @@
+(env) envai4r@ai4r:~/cone-localizer$ python rgb_yolo_simple.py
+Detection Label: 2, Confidence Threshold: 552.734375 %
+Detection Label: 2, Confidence Threshold: 543.75 %
+qt.qpa.plugin: Could not find the Qt platform plugin "wayland" in "/home/ai4r/cone-localizer/env/lib/python3.11/site-packages/cv2/qt/plugins"
+Detection Label: 2, Confidence Threshold: 596.09375 %
+Detection Label: 2, Confidence Threshold: 533.203125 %
+Detection Label: 2, Confidence Threshold: 605.078125 %
+Detection Label: 2, Confidence Threshold: 519.921875 %
+Detection Label: 2, Confidence Threshold: 603.90625 %
+Detection Label: 2, Confidence Threshold: 521.484375 %
+Detection Label: 2, Confidence Threshold: 607.03125 %
+Detection Label: 2, Confidence Threshold: 528.90625 %
+Detection Label: 77, Confidence Threshold: 181100.0 %
+Detection Label: 78, Confidence Threshold: 4162.5 %
+Detection Label: 52, Confidence Threshold: 3366400.0 %
+Detection Label: 34, Confidence Threshold: 5008000.0 %
+Detection Label: 57, Confidence Threshold: 13362.5 %
+Detection Label: 40, Confidence Threshold: 816.40625 %
+Detection Label: 15, Confidence Threshold: 777.734375 %
+Detection Label: 32, Confidence Threshold: 892.1875 %
+Detection Label: 7, Confidence Threshold: 821.09375 %
+Detection Label: 32, Confidence Threshold: 890.625 %
+Detection Label: 32, Confidence Threshold: 849.21875 %
+Detection Label: 32, Confidence Threshold: 897.65625 %
+Detection Label: 32, Confidence Threshold: 855.46875 %
+Detection Label: 68, Confidence Threshold: 1005.46875 %
+Detection Label: 32, Confidence Threshold: 850.78125 %
+Detection Label: 32, Confidence Threshold: 1046.875 %
+Detection Label: 32, Confidence Threshold: 1030.46875 %
+Detection Label: 50, Confidence Threshold: 5017600.0 %
+Detection Label: 32, Confidence Threshold: 973.4375 %
+Detection Label: 68, Confidence Threshold: 5840000.0 %
