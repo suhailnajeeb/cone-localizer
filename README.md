@@ -40,6 +40,33 @@ python camera_images.py --display
 
 ## Step 2: Manually Filter Images
 
-Manually filter the images that might contain poor/unwanted samples
+Manually filter the images that might contain poor/unwanted samples. Create a new directory with the filtered images. 
 
-## Step 3: 
+## Step 3: Label Dataset using `label.py`
+
+This script annotates image datasets using the GroundedSAM model.
+
+## Requirements
+- Python 3.x
+- GPU and substantial memory for large datasets
+- Libraries: `autodistill`
+
+## Setup
+1. Update paths in the script:
+   - `DATASET_DIR_PATH`: path to save annotated dataset
+   - `IMAGE_DIR_PATH`: path to images
+
+2. Install necessary libraries:
+   ```bash
+   pip install autodistill
+   ```
+
+## Running the Script
+Navigate to the script's directory and execute:
+```bash
+python label.py
+```
+Output is saved to the directory specified in `DATASET_DIR_PATH`.
+
+## Note
+Ensure the provided paths are correct and the system has adequate resources.
