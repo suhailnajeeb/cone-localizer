@@ -98,3 +98,34 @@ pip install numpy pillow tqdm matplotlib
 ```
 
 These cover both the script and `cone_utils.py` dependencies.
+
+Here's a short markdown section for your `train_yolo.py` script:
+
+---
+
+## Step 5: Cone Detector Training (`train_yolo.py`)
+
+The purpose of this script is to train a YOLOv8n (nano) model to detect cones using a custom dataset. This script leverages the YOLOv8n architecture, which is optimized for real-time object detection on resource-constrained devices. 
+
+### Dependencies
+Before running the script, ensure you have the necessary dependencies installed. You can install them using pip:
+
+```bash
+pip install ultralytics
+```
+
+### Usage
+To train the cone detector, run the `train_yolo.py` script with the following command:
+
+```bash
+python train_yolo.py
+```
+
+The script will train the model for 100 epochs with an image size of 640 and a batch size of 16. The training results will be saved under a directory named `cone_detector`.
+
+#### Note
+> For faster training, it is highly recommended to use a GPU. Training on a CPU can be significantly slower, especially with larger datasets and higher epoch counts.
+
+---
+
+This section should provide a concise explanation of the script's purpose and usage within the larger project.
