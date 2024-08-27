@@ -17,6 +17,7 @@ class SpatialConeDetector:
         self.labelMap = configs.labelMap
         self.x_threshold = configs.x_threshold
         self.z_threshold = configs.z_threshold
+        self.dot_projector = configs.dot_projector
     
     @staticmethod
     def setup_camrgb(camRgb):
@@ -100,6 +101,10 @@ class SpatialConeDetector:
     def start_pipeline(self):
         # Connect to OAKD device and start pipeline
         with dai.Device(self.pipeline) as device:
+            # Enable IR Dot Projection
+            if self.dot_projector:
+                device.setIrLaserDotProjectorIntensity(1.0) # in %, from 0 to 1
+
             # Output queues will be used to get the rgb frames and nn data from the outputs defined above
             detectionNNQueue = device.getOutputQueue(name="detections", maxSize=4, blocking=False)
 
@@ -140,6 +145,7 @@ detector_configs = SimpleNamespace(
     labelMap = ["Yellow", "Blue"],   # label map for detected objects
     x_threshold = 3000,     # mm ; only consider cones within 3m distance of the car
     z_threshold = 100,       # mm ; ignore detections with height > 10 cm ; likely misdetections/noise
+    dot_projector = True,   # True for enabling IR Dot projection
 )
 
 cone_detector = SpatialConeDetector(detector_configs)
