@@ -12,11 +12,11 @@ from transforms import CameraToWorld
 class SpatialConeDetector:
     def __init__(self, configs):
         self.nnBlobPath = configs.nn_blob_path
-        self.pipeline = self.setup_spatial_detection_pipeline(configs)
-        self.cam2world = CameraToWorld(configs.camera_height, configs.camera_alpha)
-        self.labelMap = configs.labelMap
         self.show_depth = configs.show_depth
+        self.labelMap = configs.labelMap
         self.dot_projector = configs.dot_projector
+        self.cam2world = CameraToWorld(configs.camera_height, configs.camera_alpha)
+        self.pipeline = self.setup_spatial_detection_pipeline(configs)
     
     @staticmethod
     def setup_camrgb(camRgb):
